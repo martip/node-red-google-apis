@@ -1,6 +1,5 @@
 # @martip/node-red-google-apis
 
-A Node-RED node for accessing the Google APIs, using the official supported client library.
 A [Node-RED](https://nodered.org/) node for accessing the Google APIs, using the official supported client library ([google-api-nodejs-client](https://github.com/googleapis/google-api-nodejs-client)).
 
 ## Install
@@ -17,4 +16,3 @@ Paste the account key and the required scopes in the configuration node.
 You choose the API and the method to call, either in the node configuration or dynamically (`msg.api` and `msg.method`).
 
 The parameters are passed to the node in `msg.payload`.
-
