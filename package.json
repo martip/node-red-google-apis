@@ -1,0 +1,24 @@
+{
+  "name": "@martip/node-red-google-apis",
+  "version": "1.0.0",
+  "description": "Node-RED node for accessing the Google APIs, using the official supported client library (google-api-nodejs-client).",
+  "keywords": [
+    "node-red",
+    "google",
+    "api"
+  ],
+  "author": "Paolo Martino",
+  "license": "MIT",
+  "node-red": {
+    "version": ">=1.0.0",
+    "nodes": {
+      "google-apis": "google-apis/google-apis.js"
+    }
+  },
+  "dependencies": {
+    "googleapis": "100.0.0"
+  },
+  "engines": {
+    "node": ">= 10.10"
+  }
+}
