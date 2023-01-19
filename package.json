@@ -1,6 +1,6 @@
 {
   "name": "@martip/node-red-google-apis",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node-RED node for accessing the Google APIs, using the official supported client library (google-api-nodejs-client).",
   "repository": {
     "type": "git",
