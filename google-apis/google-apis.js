@@ -122,7 +122,7 @@ module.exports = function(RED) {
                       shape: 'dot',
                       text: 'error'
                   });
-                  node.error(JSON.stringify(err));
+                  node.error(JSON.parse(JSON.stringify(err)));
                   return;
               }
 
@@ -141,7 +141,7 @@ module.exports = function(RED) {
                           shape: 'dot',
                           text: 'error'
                       });
-                      node.error(JSON.stringify(err));
+                      node.error(JSON.parse(JSON.stringify(err)));
                       return;
                   }
 
