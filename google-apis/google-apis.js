@@ -104,6 +104,7 @@ module.exports = function (RED) {
     } catch {
       node.config = null;
     }
+    node.authmode = config.authmode;
     node.api = config.api;
     node.method = config.method;
     node.scopes = config.scopes;
@@ -120,8 +121,8 @@ module.exports = function (RED) {
         if (node.config) {
           auth = node.config.getAuth();
         } else {
-          if (msg.google && msg.google.credentials) {
-            const { key, email, scopes } = msg.google.credentials;
+          if (msg.credentials && msg.credentials) {
+            const { key, email, scopes } = msg.credentials;
             if (!key) {
               throw 'Private Key not found. Cannot authenticate with Google.';
             }
@@ -149,8 +150,6 @@ module.exports = function (RED) {
         version: api.version,
         auth: auth,
       });
-
-      // if (auth) {
 
       auth.authorize(function (err, tokens) {
         if (err) {
@@ -193,7 +192,6 @@ module.exports = function (RED) {
           node.send(msg);
         });
       });
-      // }
     });
   }
 
