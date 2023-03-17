@@ -17,7 +17,7 @@
     },
     inputs: 0,
     outputs: 0,
-    label: function() {
+    label: function () {
       return this.name || 'Google APIs Authentication';
     }
   });
@@ -39,6 +39,21 @@
 </script>
 
 <script type="text/javascript">
+
+  function validate(v) {
+    if ($('#node-input-authmode').val() === 'dynamic') {
+      return true;
+    } else {
+      try {
+        const authentication = $('#node-input-authentication').val();
+        return (authentication !== '_ADD_');
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  }
+
   RED.nodes.registerType('google-apis', {
     category: 'function',
     color: '#1a73e8',
@@ -47,8 +62,12 @@
       name: {
         value: ''
       },
+      authmode: {
+        value: 'static'
+      },
       authentication: {
-        type: "google-apis-authentication"
+        type: 'google-apis-authentication',
+        validate: validate
       },
       api: {
         type: ''
@@ -59,7 +78,7 @@
     },
     inputs: 1,
     outputs: 1,
-    label: function() {
+    label: function () {
       if (this.name) {
         return this.name;
       }
@@ -75,42 +94,51 @@
     paletteLabel: 'google apis',
     oneditprepare: function oneditprepare() {
       const node = this;
+
+      const selectAuthMode = $('#node-input-authmode');
       const selectAPI = $('#node-input-api');
       const selectMethod = $('#node-input-method');
       const scopesInfo = $('#node-scopes-info');
 
-      selectAPI.change(function() {
+      selectAuthMode.on('change', function (e) {
+        let val = $(this).val();
 
-        debugger;
+        // Don't break existing setups!
+        if (!val) {
+          $(this).val('static');
+          val = 'static';
+        }
+        $('.node-row-authmode-static').toggle(val === 'static');
+      });
+
+      selectAPI.change(function () {
 
         scopesInfo.empty();
         selectMethod.children().not('#node-input-dynamic-method').remove();
         const api = selectAPI.val();
 
         if (api) {
-          $.getJSON("google-apis/" + api + "/info", function(data) {
-              debugger;
-              selectMethod.children().last().after(data.methods.map(function(d) {
-                return $('<option></option>').attr('value', d).attr('selected', node.method === d).text(d).wrap('<p/>').parent().html();
-              }).join(""));
-              if (data.methods.indexOf(node.method) < 0) {
-                $('#node-input-dynamic-method').attr('selected', true);
-              };
-              $.each(data.scopes, function(i, v) {
-                scopesInfo.append($('<li></li>').text(v));
-              });
+          $.getJSON("google-apis/" + api + "/info", function (data) {
+            selectMethod.children().last().after(data.methods.map(function (d) {
+              return $('<option></option>').attr('value', d).attr('selected', node.method === d).text(d).wrap('<p/>').parent().html();
+            }).join(""));
+            if (data.methods.indexOf(node.method) < 0) {
+              $('#node-input-dynamic-method').attr('selected', true);
+            };
+            $.each(data.scopes, function (i, v) {
+              scopesInfo.append($('<li></li>').text(v));
             });
+          });
         } else {
           $('#node-input-dynamic-method').attr('selected', true);
         }
         selectMethod.change();
       });
 
-      $.getJSON("google-apis/list", function(data) {
-        debugger;
-        selectAPI.children().last().after(data.map(function(d) {
+      $.getJSON('google-apis/list', function (data) {
+        selectAPI.children().last().after(data.map(function (d) {
           return $('<option></option>').attr('value', d).attr('selected', node.api === d).text(d).wrap('<p/>').parent().html();
-        }).join(""));
+        }).join(''));
         if (data.indexOf(node.api) < 0) {
           $('#node-input-dynamic-api').attr('selected', true);
         }
@@ -126,8 +154,17 @@
     <input type="text" id="node-input-name" placeholder="Name"/>
   </div>
   <div class="form-row">
-    <label for="node-input-authentication"><i class="fa fa-address-card"></i> Auth</label>
-    <input type="text" id="node-input-authentication"/>
+    <label for="node-input-authmode"><i class="fa fa-user-secret"></i> Auth</label>
+    <select type="text" id="node-input-authmode" style="width: 70%;">
+      <option value="static">Static (shared credentials)</option>
+      <option value="dynamic">Dynamic (msg.credentials)</option>
+    </select>
+  </div>
+  <div class="node-row-authmode-static">
+    <div class="form-row">
+      <label for="node-input-authentication"><i class="fa fa-key"></i> Credentials</label>
+      <input type="text" id="node-input-authentication"/>
+    </div>
   </div>
   <div class="form-row">
     <label for="node-input-api"><i class="fa fa-list"></i> API</label>
@@ -152,6 +189,9 @@
 
   <h3>Inputs</h3>
   <dl class="message-properties">
+    <dt>credentials<span class="property-type">object</span></dt>
+    <dd>If the <strong>Auth</strong> setting of the node is configured to <code>Dynamic</code>, the authorization parameters can be passed to the node using this property (see below).</dd>
+  <dl class="message-properties">
     <dt>payload<span class="property-type">object</span></dt>
     <dd>The parameters to be passed to the selected method.</dd>
   </dl>
@@ -168,10 +208,33 @@
     <dt>payload<span class="property-type">buffer</span></dt>
     <dd>The response received from the Google API.</dd>
   </dl>
-  <p>Depending on the method called, the received buffer can be converted to a string (<code>Buffer.from(msg.payload)</code>) an object (<code>JSON.parse(msg.payload.toString())</code>) etc.</p>
+  <h4>Response Parsing</h4>
+  <p>Depending on the method called, the received buffer can be converted to a string (<code>msg.payload.toString()</code>), an object (<code>JSON.parse(msg.payload.toString())</code>) etc.</p>
+  <h3>Auth</h3>
+  <p>
+    This node requires a <strong>Google Service Account</strong>.
+    <br />
+    The credentials for this account can be set statically, using a shared configuration, or dynamically, passing some properties to the node.
+  </p>
+  <h4>Static</h4>
+  <p>Paste the JSON of the account key and the required scopes in the configuration node.</p>
+  <h4>Dynamic</h4>
+  <p>Use <code>msg.credentials</code> to pass the required parameters to the node:</p>
+  <pre>
+msg.credentials = {
+  key: '-----BEGIN PRIVATE KEY-----\n ... \n-----END PRIVATE KEY-----\n',
+  email: '[your-account]@[your-project].iam.gserviceaccount.com',
+  scopes: [
+    'https://www.googleapis.com/auth/...',
+    'https://www.googleapis.com/auth/...',
+    ...
+  ]
+};
+  </pre>
   <h3>References</h3>
   <ul>
-    <li><a href="https://github.com/google/google-api-nodejs-client">google-api-nodejs-client</a> - details of the official client library</li>
-    <li><a href="https://developers.google.com/apis-explorer/">Google APIs Explorer</a></li>
+    <li><a href="https://cloud.google.com/iam/docs/service-accounts" target="_blank">Google Service Account</a></li>
+    <li><a href="https://github.com/google/google-api-nodejs-client" target="_blank">google-api-nodejs-client</a> - details of the official client library</li>
+    <li><a href="https://developers.google.com/apis-explorer/" target="_blank">Google APIs Explorer</a></li>
   </ul>
 </script>
