@@ -17,7 +17,7 @@
     },
     inputs: 0,
     outputs: 0,
-    label: function() {
+    label: function () {
       return this.name || 'Google APIs Authentication';
     }
   });
@@ -48,7 +48,8 @@
         value: ''
       },
       authentication: {
-        type: "google-apis-authentication"
+        type: 'google-apis-authentication',
+        validate: () => true
       },
       api: {
         type: ''
@@ -59,7 +60,7 @@
     },
     inputs: 1,
     outputs: 1,
-    label: function() {
+    label: function () {
       if (this.name) {
         return this.name;
       }
@@ -79,7 +80,7 @@
       const selectMethod = $('#node-input-method');
       const scopesInfo = $('#node-scopes-info');
 
-      selectAPI.change(function() {
+      selectAPI.change(function () {
 
         debugger;
 
@@ -88,27 +89,27 @@
         const api = selectAPI.val();
 
         if (api) {
-          $.getJSON("google-apis/" + api + "/info", function(data) {
-              debugger;
-              selectMethod.children().last().after(data.methods.map(function(d) {
-                return $('<option></option>').attr('value', d).attr('selected', node.method === d).text(d).wrap('<p/>').parent().html();
-              }).join(""));
-              if (data.methods.indexOf(node.method) < 0) {
-                $('#node-input-dynamic-method').attr('selected', true);
-              };
-              $.each(data.scopes, function(i, v) {
-                scopesInfo.append($('<li></li>').text(v));
-              });
+          $.getJSON("google-apis/" + api + "/info", function (data) {
+            debugger;
+            selectMethod.children().last().after(data.methods.map(function (d) {
+              return $('<option></option>').attr('value', d).attr('selected', node.method === d).text(d).wrap('<p/>').parent().html();
+            }).join(""));
+            if (data.methods.indexOf(node.method) < 0) {
+              $('#node-input-dynamic-method').attr('selected', true);
+            };
+            $.each(data.scopes, function (i, v) {
+              scopesInfo.append($('<li></li>').text(v));
             });
+          });
         } else {
           $('#node-input-dynamic-method').attr('selected', true);
         }
         selectMethod.change();
       });
 
-      $.getJSON("google-apis/list", function(data) {
+      $.getJSON("google-apis/list", function (data) {
         debugger;
-        selectAPI.children().last().after(data.map(function(d) {
+        selectAPI.children().last().after(data.map(function (d) {
           return $('<option></option>').attr('value', d).attr('selected', node.api === d).text(d).wrap('<p/>').parent().html();
         }).join(""));
         if (data.indexOf(node.api) < 0) {
