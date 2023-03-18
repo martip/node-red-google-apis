@@ -145,7 +145,38 @@ module.exports = function (RED) {
         return;
       }
 
-      let api = decodeAPI(node.api);
+      const options = {
+        api: null,
+        method: null,
+      };
+
+      if (node.api !== 'dynamic') {
+        options.api = node.api;
+        if (node.method !== 'dynamic') {
+          options.method = node.method;
+        } else {
+          options.method = msg.method ? msg.method : null;
+        }
+      } else if (msg.api) {
+        options.api = msg.api;
+        options.method = msg.method ? msg.method : null;
+      }
+
+      if (!options.api || !options.method) {
+        node.status({
+          fill: 'red',
+          shape: 'dot',
+          text: 'error',
+        });
+        if (!options.api) {
+          node.error('API not set');
+        } else {
+          node.error('Method not set');
+        }
+        return;
+      }
+
+      let api = decodeAPI(options.api);
       api = google[api.name]({
         version: api.version,
         auth: auth,
@@ -162,7 +193,7 @@ module.exports = function (RED) {
           return;
         }
 
-        const props = node.method.split('.');
+        const props = options.method.split('.');
         let method = api;
         props.forEach(function (val) {
           method = method[val];
@@ -176,8 +207,15 @@ module.exports = function (RED) {
               shape: 'dot',
               text: 'error',
             });
-            const error = JSON.parse(Buffer.from(err.message).toString()).error;
-            node.error(error);
+            const errorObject = Buffer.from(err.message).toString();
+            let message;
+            try {
+              const error = JSON.parse(errorObject);
+              message = error.error;
+            } catch (e) {
+              message = errorObject;
+            }
+            node.error(message);
             return;
           }
 

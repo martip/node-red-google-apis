@@ -70,9 +70,11 @@
         validate: validate
       },
       api: {
+        value: 'dynamic',
         type: ''
       },
       method: {
+        value: 'dynamic',
         type: ''
       }
     },
@@ -169,13 +171,13 @@
   <div class="form-row">
     <label for="node-input-api"><i class="fa fa-list"></i> API</label>
     <select type="text" id="node-input-api" style="display: inline-block;">
-      <option value="" id="node-input-dynamic-api" style="font-style: italic;">Dynamic (msg.api)</option>
+      <option value="dynamic" id="node-input-dynamic-api" style="font-style: italic;">Dynamic (msg.api)</option>
     </select>
   </div>
   <div class="form-row">
     <label for="node-input-method"><i class="fa fa-code"></i> Method</label>
     <select type="text" id="node-input-method" style="display: inline-block;">
-      <option value="" id="node-input-dynamic-method" style="font-style: italic;">Dynamic (msg.method)</option>
+      <option value="dynamic" id="node-input-dynamic-method" style="font-style: italic;">Dynamic (msg.method)</option>
     </select>
   </div>
   <div class="form-row">
